@@ -10,7 +10,7 @@ uv venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
 ```
-2. Run it! (Assuming your application is running on port 8080)
+2. Run it! (Assuming your application is running on port 5001)
 ```
 bash run.sh
 ```
