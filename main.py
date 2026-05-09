@@ -4,15 +4,16 @@ import json
 import csv
 import re
 from pathlib import Path
-
 from ai_detector.detector import Detector
-
 from urllib.parse import unquote, unquote_plus, parse_qs
 
-DATA_FILE = Path(__file__).resolve().with_name("data.json")
+LOG_DATA = True
 
-if not DATA_FILE.exists():
-    DATA_FILE.write_text("{\"data\":[]}", encoding="utf-8")
+if LOG_DATA:
+    DATA_FILE = Path(__file__).resolve().with_name("data.json")
+
+    if not DATA_FILE.exists():
+        DATA_FILE.write_text("{\"data\":[]}", encoding="utf-8")
 
 class SeWAF:
     def __init__(self):
@@ -28,17 +29,19 @@ class SeWAF:
             return
         
         full_text = unquote(flow.request.path + (flow.request.text or ""))
-        try:
-            with DATA_FILE.open("r", encoding="utf-8") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = {"data": []}
+        if LOG_DATA:
+            try:
+                with DATA_FILE.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {"data": []}
 
-        data.setdefault("data", []).append(full_text)
+            data.setdefault("data", []).append(full_text)
 
-        with DATA_FILE.open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+            with DATA_FILE.open("w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
         
+        # Custom rules
         for pattern in self.blocked_patterns:
             if re.search(pattern, full_text, re.IGNORECASE):
                 flow.response = http.Response.make(403, "Malicious Request Blocked")
@@ -49,7 +52,5 @@ class SeWAF:
         if detector.is_malicious(full_text):
             flow.response = http.Response.make(403, "Malicious Request Blocked")
             return
-        
-        
 
 addons = [SeWAF()]

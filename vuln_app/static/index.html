@@ -6,25 +6,25 @@
     <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:2rem}</style>
   </head>
   <body>
-    <h1>Vulnerable Test App</h1>
+    <h1>Acme Web Portal</h1>
     <ul>
-      <li><a href="/xss?q=%3Cscript%3Ealert(1)%3C/script%3E" target="_blank">Reflected XSS</a></li>
-      <li><a href="/login?username=alice&password=alice123" target="_blank">SQL injection demo</a></li>
-      <li><a href="/file?name=readme.txt" target="_blank">File read demo (path traversal possible)</a></li>
-      <li><a href="/echo?msg=%3Cstrong%3Ehello%3C/strong%3E" target="_blank">Raw echo (XSS)</a></li>
-      <li><a href="/upload" target="_blank">Upload file (no validation)</a></li>
-      <li><a href="/ssrf?url=http://example.com" target="_blank">SSRF demo (fetch arbitrary URL)</a></li>
-      <li><a href="/set_admin" target="_blank">Set admin cookie (insecure)</a> — then visit <a href="/admin" target="_blank">/admin</a></li>
+      <li><a href="/search?q=example" target="_blank">Search</a></li>
+      <li><a href="/signin?username=alice&password=alice123" target="_blank">Sign in</a></li>
+      <li><a href="/download?name=about.txt" target="_blank">Documents</a></li>
+      <li><a href="/mirror?msg=hello" target="_blank">Messages</a></li>
+      <li><a href="/upload" target="_blank">Upload</a></li>
+      <li><a href="/proxy?url=http://example.com" target="_blank">External Fetch</a></li>
+      <li><a href="/auth/session" target="_blank">Create Session</a> — then visit <a href="/admin" target="_blank">/admin</a></li>
     </ul>
 
-    <h2>Try Payloads</h2>
-    <form action="/ssrf" method="get" target="_blank">
-      <label>SSRF URL: <input name="url" size="60" value="http://example.com"></label>
+    <h2>Tools</h2>
+    <form action="/proxy" method="get" target="_blank">
+      <label>Fetch URL: <input name="url" size="60" value="http://example.com"></label>
       <button type="submit">Fetch</button>
     </form>
 
-    <form action="/xss" method="get" target="_blank">
-      <label>Search: <input name="q" size="60" value="<script>alert(1)</script>"></label>
+    <form action="/search" method="get" target="_blank">
+      <label>Search: <input name="q" size="60" value="example"></label>
       <button type="submit">Search</button>
     </form>
   </body>

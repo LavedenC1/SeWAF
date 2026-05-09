@@ -1,1 +1,2 @@
-hello from the vuln app
+Acme Web Portal sample file.
+Contact support at support@acme.example

@@ -8,16 +8,16 @@ import requests
 app = Flask(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "demo.db"
+DB_PATH = BASE_DIR / "app.db"
 FILES_DIR = BASE_DIR / "files"
 
 
 def init_data() -> None:
     FILES_DIR.mkdir(parents=True, exist_ok=True)
 
-    sample_file = FILES_DIR / "readme.txt"
+    sample_file = FILES_DIR / "about.txt"
     if not sample_file.exists():
-        sample_file.write_text("hello from the vuln app\n", encoding="utf-8")
+        sample_file.write_text("Welcome to Acme Web Portal\n", encoding="utf-8")
 
     conn = sqlite3.connect(DB_PATH)
     try:
@@ -41,9 +41,9 @@ def index():
     return send_from_directory(BASE_DIR / "static", "index.html")
 
 
-@app.get('/set_admin')
+@app.get('/auth/session')
 def set_admin():
-    resp = make_response('Admin cookie set')
+    resp = make_response('Session cookie set')
     resp.set_cookie('is_admin', '1')
     return resp
 
@@ -56,7 +56,7 @@ def admin():
     return 'Forbidden', 403
 
 
-@app.get("/xss")
+@app.get('/search')
 def xss():
     q = request.args.get("q", "")
     return render_template_string(
@@ -67,7 +67,7 @@ def xss():
     )
 
 
-@app.get("/login")
+@app.get("/signin")
 def sqli():
     username = request.args.get("username", "")
     password = request.args.get("password", "")
@@ -91,9 +91,9 @@ def sqli():
     return "Access denied", 403
 
 
-@app.get("/file")
+@app.get("/download")
 def file_read():
-    name = request.args.get("name", "readme.txt")
+    name = request.args.get("name", "about.txt")
     path = FILES_DIR / name
 
     try:
@@ -125,7 +125,7 @@ def upload():
     return f'Uploaded: {f.filename}'
 
 
-@app.get('/ssrf')
+@app.get('/proxy')
 def ssrf():
     url = request.args.get('url')
     if not url:
@@ -138,12 +138,12 @@ def ssrf():
         return f'Fetch error: {e}', 500
 
 
-@app.get("/echo")
+@app.get("/mirror")
 def echo():
     msg = request.args.get("msg", "")
     return render_template_string(
         f"""
-        <h1>Echo</h1>
+        <h1>Messages</h1>
         <div>{msg}</div>
         """
     )
@@ -151,4 +151,4 @@ def echo():
 
 if __name__ == "__main__":
     init_data()
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=False)
