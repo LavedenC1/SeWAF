@@ -2,7 +2,8 @@
 from pathlib import Path
 import sqlite3
 
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, make_response, send_from_directory
+import requests
 
 app = Flask(__name__)
 
@@ -36,17 +37,23 @@ def init_data() -> None:
 
 @app.get("/")
 def index():
-    return render_template_string(
-        """
-        <h1>Vulnerable Test App</h1>
-        <ul>
-          <li><a href="/xss?q=%3Cscript%3Ealert(1)%3C/script%3E">Reflected XSS</a></li>
-          <li><a href="/login?username=alice&password=alice123">SQL injection demo</a></li>
-          <li><a href="/file?name=readme.txt">File read demo</a></li>
-          <li><a href="/echo?msg=test">Raw echo demo</a></li>
-        </ul>
-        """
-    )
+    # serve the static frontend
+    return send_from_directory(BASE_DIR / "static", "index.html")
+
+
+@app.get('/set_admin')
+def set_admin():
+    resp = make_response('Admin cookie set')
+    resp.set_cookie('is_admin', '1')
+    return resp
+
+
+@app.get('/admin')
+def admin():
+    # insecure admin check via cookie
+    if request.cookies.get('is_admin') == '1':
+        return '<h1>Admin Panel</h1><p>secret: 42</p>'
+    return 'Forbidden', 403
 
 
 @app.get("/xss")
@@ -93,6 +100,42 @@ def file_read():
         return path.read_text(encoding="utf-8")
     except Exception as exc:
         return f"File error: {exc}", 500
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == 'GET':
+        return render_template_string(
+            '''
+            <h1>Upload File</h1>
+            <form method="post" enctype="multipart/form-data">
+              <input type="file" name="file" />
+              <input type="submit" value="Upload" />
+            </form>
+            '''
+        )
+
+    f = request.files.get('file')
+    if not f:
+        return 'No file', 400
+
+    # insecurely save uploaded file without validation
+    dest = FILES_DIR / f.filename
+    f.save(dest)
+    return f'Uploaded: {f.filename}'
+
+
+@app.get('/ssrf')
+def ssrf():
+    url = request.args.get('url')
+    if not url:
+        return 'Provide ?url=', 400
+    try:
+        # fetch arbitrary URL (no validation)
+        r = requests.get(url, timeout=5)
+        return r.text[:2000]
+    except Exception as e:
+        return f'Fetch error: {e}', 500
 
 
 @app.get("/echo")
