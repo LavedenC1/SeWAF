@@ -26,7 +26,7 @@ bash run.sh
 
 1. Start mitm proxy without forwarding and enable logging in main.py
 ```
-mitmproxy -s main.py --listen-port $PROTECTED_PORT
+mitmproxy -s main.py --listen-port 8888
 ```
 2. Set up the HTTP proxy in your web browser and do normal things
 3. Once you have enough data, stop mitm proxy

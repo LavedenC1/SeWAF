@@ -27,7 +27,7 @@ class SeWAF:
         self._block_rules = [re.compile(p, re.IGNORECASE) for p in block_patterns]
 
         self._blocked_ips = set(_load_lines("custom/blocked_ips.txt"))
-        self._detector    = Detector()
+        self._detector = Detector()
         self._block_html  = BLOCK_PAGE.read_bytes()
 
         self._executor = ThreadPoolExecutor(max_workers=WORKER_THREADS,
@@ -54,7 +54,7 @@ class SeWAF:
             flow.response = http.Response.make(403, "Access Denied")
             return
 
-        full_text = unquote(flow.request.path + (flow.request.text or ""))
+        full_text = unquote(flow.request.path + " -- " + (flow.request.text or ""))
 
         if LOG_DATA:
             await self._log_queue.put(full_text)
@@ -76,7 +76,8 @@ class SeWAF:
         for pattern in self._block_rules:
             if pattern.search(text):
                 return True
-        return self._detector.is_malicious(text)
+            
+        return False # self._detector.is_malicious(text)
 
     async def _log_writer(self) -> None:
         while True:

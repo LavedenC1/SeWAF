@@ -1,5 +1,5 @@
 # Convert data.json to output.jsonl with sanitization and etc
-# Change values accordingly
+# LINE 32: CHANGE 1 FOR MALICIOUS
 
 import json
 import base64
@@ -29,7 +29,7 @@ with open('output.jsonl', 'w', encoding='utf-8') as file:
             "body": sanitize_value(item),
 
             # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            "label": 0, # CHANGE 1 FOR MALICIOUS
+            "label": 1, # CHANGE 1 FOR MALICIOUS
             # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             
         }
