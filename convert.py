@@ -27,6 +27,10 @@ with open('output.jsonl', 'w', encoding='utf-8') as file:
     for item in requests:
         record = {
             "body": sanitize_value(item),
+
+            # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             "label": 0, # CHANGE 1 FOR MALICIOUS
+            # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            
         }
         file.write(json.dumps(record, ensure_ascii=False) + "\n")
