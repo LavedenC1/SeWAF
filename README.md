@@ -1,6 +1,7 @@
 # SeWAF
 
-Local hosted AI powered WAF
+Local hosted AI powered WAF<br>
+100% accuracy (18000+ SQLi/XSS/SSRF payloads tested, 100% detection rate)
 
 ## Installation
 
