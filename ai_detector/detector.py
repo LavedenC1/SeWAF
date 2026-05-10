@@ -7,7 +7,6 @@ import joblib
 
 
 def _preprocess(text: str) -> str:
-    """Iterative URL-decode + whitespace normalisation + lowercase."""
     if not isinstance(text, str):
         text = str(text)
     for _ in range(3):
@@ -24,20 +23,6 @@ class DetectionResult:
     label: str             
 
 class Detector:
-    """
-    WAF payload classifier.
-
-    Parameters
-    ----------
-    model_path : str
-        Path to the .pkl artefact produced by train.py.
-    threshold : float
-        Attack-probability threshold above which a request is blocked.
-        Lower  → block more aggressively (fewer false negatives, more false positives).
-        Higher → block more conservatively (fewer false positives, more false negatives).
-        Default 0.5 matches standard argmax behaviour.
-    """
-
     def __init__(self, model_path: str = "waf.pkl", threshold: float = 0.5) -> None:
         artefact = joblib.load(model_path)
 
@@ -58,11 +43,9 @@ class Detector:
     
 
     def is_malicious(self, body: str) -> bool:
-        """Quick boolean check — drop-in replacement for the original method."""
         return self.inspect(body).is_malicious
 
     def inspect(self, body: str) -> DetectionResult:
-        """Full result with confidence score and raw label."""
         clean  = _preprocess(body)
         probas = self._model.predict_proba([clean])[0]
 
@@ -76,7 +59,6 @@ class Detector:
         )
 
     def inspect_batch(self, bodies: list[str]) -> list[DetectionResult]:
-        """Score multiple payloads in one call (faster than looping inspect())."""
         clean  = [_preprocess(b) for b in bodies]
         probas = self._model.predict_proba(clean)
 

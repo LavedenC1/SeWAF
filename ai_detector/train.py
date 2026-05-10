@@ -32,15 +32,6 @@ if not DATA_FILE.exists():
 MODEL_OUT = BASE_DIR.parent / "waf.pkl"
 
 def preprocess(text: str) -> str:
-    """
-    Normalise a raw HTTP payload / URL before vectorisation.
-
-    Steps
-    -----
-    1. URL-decode up to 3 times  (handles double/triple encoding attacks)
-    2. Collapse runs of whitespace
-    3. Lower-case
-    """
     if not isinstance(text, str):
         text = str(text)
 
@@ -194,12 +185,6 @@ print(f"\n[+] Model artefact saved → {MODEL_OUT}  "
 
 
 def predict(texts: list[str], threshold: float = 0.5) -> list[dict]:
-    """
-    Load the saved artefact and score new payloads.
-
-    Returns a list of dicts:
-        { "label": str, "confidence": float, "blocked": bool }
-    """
     art   = joblib.load(MODEL_OUT)
     mdl   = art["model"]
     clean = [preprocess(t) for t in texts]
