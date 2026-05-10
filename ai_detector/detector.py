@@ -28,22 +28,18 @@ class Detector:
 
         
         if isinstance(artefact, dict):
-            self._model   = artefact["model"]
+            self._model = artefact["model"]
             self._classes = artefact["classes"]
         else:
-            self._model   = artefact
+            self._model = artefact
             self._classes = list(artefact.classes_)
-
-        
         
         self._attack_label = self._classes[-1]
         self._attack_idx   = self._classes.index(self._attack_label)
-        self.threshold     = threshold
-
-    
+        self.threshold = threshold
 
     def is_malicious(self, body: str) -> bool:
-        return self.inspect(body).is_malicious
+        return (self.inspect(body).is_malicious,self.inspect(body).confidence)
 
     def inspect(self, body: str) -> DetectionResult:
         clean  = _preprocess(body)

@@ -80,7 +80,7 @@ class SeWAF:
             if pattern.search(text):
                 return True
             
-        return self._detector.is_malicious(text)
+        return self._detector.is_malicious(text)[0]
 
     async def _generate_training_data(self) -> None:
         while True:
