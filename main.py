@@ -63,7 +63,9 @@ class SeWAF:
         )
 
         if blocked:
-            flow.response = http.Response.make(403, "Malicious Request Blocked")
+            with open("static/blocked.html", "r", encoding="utf-8") as fh:
+                html = fh.read()
+            flow.response = http.Response.make(403, html, {"Content-Type": "text/html"})
 
     def _analyse(self, text: str) -> bool:
         for pattern in self._allow_rules:
