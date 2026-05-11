@@ -1,3 +1,0 @@
-# vuln_app/requirements.txt
-Flask>=3.0,<4
-requests>=2.0
