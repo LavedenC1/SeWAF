@@ -224,5 +224,6 @@ data.jsonl
 data.json
 output.jsonl
 output.json
+blocked_requests.jsonl
 
 vuln_app/

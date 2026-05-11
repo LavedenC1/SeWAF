@@ -1,0 +1,18 @@
+{
+    "worker_threads": 4,
+    "allow_rules": [
+        "safe_keyword",
+        "trusted_pattern"
+    ],
+    "block_rules": [
+        "malicious_keyword",
+        "suspicious_pattern"
+    ],
+    "blocked_ip_addresses": [
+    ],
+    "ai_data":{
+        "log_training_data": false,
+        "training_data_output_file": "data.jsonl",
+        "is_malicious": false
+    }
+}

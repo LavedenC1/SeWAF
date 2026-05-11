@@ -9,29 +9,32 @@ from urllib.parse import unquote
 from mitmproxy import http
 from ai_detector.detector import Detector
 
-WORKER_THREADS = 4
+global config
+
+with open("config.json", "r", encoding="utf-8") as config_file:
+    config = json.load(config_file)
+
+WORKER_THREADS = config["worker_threads"]
 
 BLOCK_PAGE = Path(__file__).resolve().parent / "static" / "blocked.html"
 
-LOG_TRAINING_DATA = True
-TRAINING_DATA_FILE = Path(__file__).resolve().with_name("data.jsonl")
-TRAINING_DATA_IS_MALICIOUS = 0 # Set to 1 if you want to label all logged data as malicious, otherwise 0 for non-malicious
+LOG_TRAINING_DATA = config["ai_data"]["log_training_data"]
+TRAINING_DATA_FILE = Path(__file__).resolve().with_name(config["ai_data"]["training_data_output_file"])
+TRAINING_DATA_IS_MALICIOUS = int(config["ai_data"]["is_malicious"])
 
 if LOG_TRAINING_DATA and not TRAINING_DATA_FILE.exists():
     TRAINING_DATA_FILE.write_text('', encoding="utf-8")
 
-def _load_lines(path: str) -> list[str]:
-    return [l.strip() for l in Path(path).read_text().splitlines() if l.strip()]
-
 class SeWAF:
     def __init__(self) -> None:
-        allow_patterns = _load_lines("custom/custom_allow_rules.txt")
+        global config
+        allow_patterns = config["allow_rules"]
         self._allow_rules = [re.compile(p, re.IGNORECASE) for p in allow_patterns]
 
-        block_patterns = _load_lines("custom/custom_block_rules.txt")
+        block_patterns = config["block_rules"]
         self._block_rules = [re.compile(p, re.IGNORECASE) for p in block_patterns]
 
-        self._blocked_ips = set(_load_lines("custom/blocked_ips.txt"))
+        self._blocked_ips = set(config["blocked_ip_addresses"])
         self._detector = Detector()
         self._block_html = BLOCK_PAGE.read_bytes()
 
