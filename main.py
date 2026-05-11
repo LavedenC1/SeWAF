@@ -1,6 +1,8 @@
 import asyncio
+from datetime import datetime
 import json
 import re
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import unquote
@@ -62,26 +64,41 @@ class SeWAF:
         if LOG_TRAINING_DATA:
             await self._log_queue.put(full_text)
 
-        loop    = asyncio.get_event_loop()
-        blocked = await loop.run_in_executor(
+        loop = asyncio.get_event_loop()
+        blocked, reason = await loop.run_in_executor(
             self._executor, self._analyse, full_text
         )
 
         if blocked:
-            flow.response = http.Response.make(
-                403, self._block_html, {"Content-Type": "text/html; charset=utf-8"}
+            request_id = uuid.uuid4().hex[:12].upper()
+            timestamp = datetime.now().isoformat()
+
+            with open("blocked_requests.jsonl", "a", encoding="utf-8") as log_file:
+                log_file.write(json.dumps({"timestamp": timestamp, "request_id": request_id, "request": full_text, "ip_address": client_ip, "reason": reason}) + "\n")
+
+            block_html = (
+                self._block_html
+                .decode("utf-8")
+                .replace("{request_id}", request_id)
+                .replace("{timestamp}", timestamp)
+                .encode("utf-8")
             )
 
-    def _analyse(self, text: str) -> bool:
+            flow.response = http.Response.make(
+                403,
+                block_html,
+                {"Content-Type": "text/html; charset=utf-8"}
+            )
+
+    def _analyse(self, text: str) -> tuple[bool, str]:
         for pattern in self._allow_rules:
             if pattern.search(text):
-                return False
+                return False, "allow_rule"
         for pattern in self._block_rules:
             if pattern.search(text):
-                return True
-            
-        return self._detector.is_malicious(text)[0]
-
+                return True, "block_rule"
+        return self._detector.is_malicious(text)[0], "ai_detector"
+    
     async def _generate_training_data(self) -> None:
         while True:
             try:

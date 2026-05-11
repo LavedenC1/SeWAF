@@ -152,7 +152,11 @@
         </div>
         <div class="reference-item">
           <span class="reference-label">Timestamp</span>
-          <span class="reference-value" id="timestamp">Loading...</span>
+          <span class="reference-value" id="timestamp">{timestamp}</span>
+        </div>
+        <div class="reference-item">
+          <span class="reference-label">Request ID</span>
+          <span class="reference-value" id="request-id">{request_id}</span>
         </div>
       </div>
     </div>
@@ -163,10 +167,6 @@
   </div>
 
   <script>
-    // Set timestamp
-    const now = new Date();
-    document.getElementById('timestamp').textContent = now.toISOString();
-
     // Fetch IP from external source
     fetch('https://api.ipify.org?format=json')
       .then(response => response.json())
