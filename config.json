@@ -1,18 +1,25 @@
 {
     "worker_threads": 4,
-    "allow_rules": [
-        "safe_keyword",
-        "trusted_pattern"
-    ],
-    "block_rules": [
-        "malicious_keyword",
-        "suspicious_pattern"
-    ],
     "blocked_ip_addresses": [
     ],
     "ai_data":{
-        "log_training_data": false,
+        "log_training_data": true,
         "training_data_output_file": "data.jsonl",
         "is_malicious": false
+    },
+    "modules":{
+        "ai_detector": {
+            "enabled": false
+        },
+        "block_rules": {
+            "enabled": false,
+            "block_rules": [
+            ]
+        },
+        "allow_rules": {
+            "enabled": false,
+            "allow_rules": [
+            ]
+        }
     }
 }

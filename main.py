@@ -6,7 +6,10 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import unquote
+
 from mitmproxy import http
+from mitmproxy.net.http.http1.assemble import assemble_request
+
 from ai_detector.detector import Detector
 
 global config
@@ -28,10 +31,10 @@ if LOG_TRAINING_DATA and not TRAINING_DATA_FILE.exists():
 class SeWAF:
     def __init__(self) -> None:
         global config
-        allow_patterns = config["allow_rules"]
+        allow_patterns = config["modules"]["allow_rules"]["allow_rules"]
         self._allow_rules = [re.compile(p, re.IGNORECASE) for p in allow_patterns]
 
-        block_patterns = config["block_rules"]
+        block_patterns = config["modules"]["block_rules"]["block_rules"]
         self._block_rules = [re.compile(p, re.IGNORECASE) for p in block_patterns]
 
         self._blocked_ips = set(config["blocked_ip_addresses"])
@@ -62,7 +65,11 @@ class SeWAF:
             flow.response = http.Response.make(403, "Access Denied")
             return
 
-        full_text = unquote(flow.request.path + " -- " + (flow.request.text or ""))
+        # full_text = unquote(flow.request.path + " -- " + (flow.request.text or ""))
+        req = flow.request.copy()
+        req.headers.pop("Host", None)
+
+        full_text = assemble_request(req).decode("utf-8", errors="ignore")
 
         if LOG_TRAINING_DATA:
             await self._log_queue.put(full_text)
@@ -94,14 +101,19 @@ class SeWAF:
             )
 
     def _analyse(self, text: str) -> tuple[bool, str]:
-        for pattern in self._allow_rules:
-            if pattern.search(text):
-                return False, "allow_rule"
-        for pattern in self._block_rules:
-            if pattern.search(text):
-                return True, "block_rule"
-        return self._detector.is_malicious(text)[0], "ai_detector"
-    
+        if config["modules"]["allow_rules"]["enabled"]:
+            for pattern in self._allow_rules:
+                if pattern.search(text):
+                    return False, "allow_rule"
+        if config["modules"]["block_rules"]["enabled"]:
+            for pattern in self._block_rules:
+                if pattern.search(text):
+                    return True, "block_rule"
+        if config["modules"]["ai_detector"]["enabled"]:
+            return self._detector.is_malicious(text)[0], "ai_detector"
+        
+        return False, "no_modules_enabled"
+
     async def _generate_training_data(self) -> None:
         while True:
             try:
